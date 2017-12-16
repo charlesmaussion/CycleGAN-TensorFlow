@@ -1,6 +1,7 @@
 # set hyperparameters here
 BATCH_SIZE = 1
-IMAGE_SIZE = 256
+IMAGE_LENGTH = 900
+IMAGE_HEIGHT = 50
 NGF = 64
 X = apple
 Y = orange
@@ -25,7 +26,8 @@ build_data:
 
 train:
 	python3 train.py --batch_size=$(BATCH_SIZE) \
-                         --image_size=$(IMAGE_SIZE) \
+                         --image_length=$(IMAGE_LENGTH) \
+					     --image_height=$(IMAGE_HEIGHT) \
                          --ngf=$(NGF) \
                          --X=data/tfrecords/$(X).tfrecords \
                          --Y=data/tfrecords/$(Y).tfrecords
@@ -34,13 +36,15 @@ export_graph:
 	python3 export_graph.py --checkpoint_dir=$(CHECKPOINT_DIR) \
                                 --XtoY_model=$(X)2$(Y).pb \
                                 --YtoX_model=$(Y)2$(X).pb \
-                                --image_size=$(IMAGE_SIZE)
+							    --image_length=$(IMAGE_LENGTH) \
+								--image_height=$(IMAGE_HEIGHT)
 
 inference:
 	python3 inference.py --model=$(MODEL)\
                              --input=$(INPUT_IMG) \
                              --output=$(OUTPUT_IMG) \
-                             --image_size=$(IMAGE_SIZE)
+							 --image_length=$(IMAGE_LENGTH) \
+							 --image_height=$(IMAGE_HEIGHT) 
 
 tensorboard:
 	tensorboard --logdir=$(CHECKPOINT_DIR)

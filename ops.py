@@ -94,7 +94,7 @@ def n_res_blocks(input, reuse, norm='instance', is_training=True, n=6):
     input = output
   return output
 
-def uk(input, k, reuse=False, norm='instance', is_training=True, name=None, output_size=None):
+def uk(input, k, reuse=False, norm='instance', is_training=True, name=None, output_length=None, output_height=None):
   """ A 3x3 fractional-strided-Convolution-BatchNorm-ReLU layer
       with k filters, stride 1/2
   Args:
@@ -114,9 +114,10 @@ def uk(input, k, reuse=False, norm='instance', is_training=True, name=None, outp
     weights = _weights("weights",
       shape=[3, 3, k, input_shape[3]])
 
-    if not output_size:
-      output_size = input_shape[1]*2
-    output_shape = [input_shape[0], output_size, output_size, k]
+    if not output_length:
+      output_length = input_shape[1]*2
+      output_height = input_shape[2]*2
+    output_shape = [input_shape[0], output_length, output_height, k]
     fsconv = tf.nn.conv2d_transpose(input, weights,
         output_shape=output_shape,
         strides=[1, 2, 2, 1], padding='SAME')

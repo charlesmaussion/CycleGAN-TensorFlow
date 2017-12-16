@@ -13,16 +13,16 @@ def create_image(text, success):
 
 success = 0
 
-f = open("text.txt","r")
+f = open('text.txt','r')
 for line in f:
-    a = line.split(" ")
-    string = ""
+    a = line.split(' ')
+    string = ''
     while len(string) < 53 and len(a) > 0:
-        string = string + " " + a.pop(0)
+        string = string + ' ' + a.pop(0)
         if len(string) > 49 and len(string) < 53:
             success += 1
             create_image(string, success)
             if success % 100 == 0:
-                print("%i images created"%(success))
+                print('%i images created'%(success))
     if success > 1000:
         break

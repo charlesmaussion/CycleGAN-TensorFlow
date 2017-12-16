@@ -3,13 +3,14 @@ import ops
 import utils
 
 class Generator:
-  def __init__(self, name, is_training, ngf=64, norm='instance', image_size=128):
+  def __init__(self, name, is_training, ngf=64, norm='instance', image_length=900, image_height = 50):
     self.name = name
     self.reuse = False
     self.ngf = ngf
     self.norm = norm
     self.is_training = is_training
-    self.image_size = image_size
+    self.image_length = image_length
+    self.image_height = image_height
 
   def __call__(self, input):
     """
@@ -27,18 +28,14 @@ class Generator:
       d128 = ops.dk(d64, 4*self.ngf, is_training=self.is_training, norm=self.norm,
           reuse=self.reuse, name='d128')                                # (?, w/4, h/4, 128)
 
-      if self.image_size <= 128:
-        # use 6 residual blocks for 128x128 images
-        res_output = ops.n_res_blocks(d128, reuse=self.reuse, n=6)      # (?, w/4, h/4, 128)
-      else:
-        # 9 blocks for higher resolution
-        res_output = ops.n_res_blocks(d128, reuse=self.reuse, n=9)      # (?, w/4, h/4, 128)
+
+      res_output = ops.n_res_blocks(d128, reuse=self.reuse, n=9)      # (?, w/4, h/4, 128)
 
       # fractional-strided convolution
       u64 = ops.uk(res_output, 2*self.ngf, is_training=self.is_training, norm=self.norm,
           reuse=self.reuse, name='u64')                                 # (?, w/2, h/2, 64)
       u32 = ops.uk(u64, self.ngf, is_training=self.is_training, norm=self.norm,
-          reuse=self.reuse, name='u32', output_size=self.image_size)         # (?, w, h, 32)
+          reuse=self.reuse, name='u32', output_length=self.image_length, output_height=self.image_height)         # (?, w, h, 32)
 
       # conv layer
       # Note: the paper said that ReLU and _norm were used

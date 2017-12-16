@@ -7,18 +7,18 @@ try:
 except ImportError:
   # Python 2 polyfill module
   from scandir import scandir
-    
+
 
 FLAGS = tf.flags.FLAGS
 
-tf.flags.DEFINE_string('X_input_dir', 'data/apple2orange/trainA',
-                       'X input directory, default: data/apple2orange/trainA')
-tf.flags.DEFINE_string('Y_input_dir', 'data/apple2orange/trainB',
-                       'Y input directory, default: data/apple2orange/trainB')
-tf.flags.DEFINE_string('X_output_file', 'data/tfrecords/apple.tfrecords',
-                       'X output tfrecords file, default: data/tfrecords/apple.tfrecords')
-tf.flags.DEFINE_string('Y_output_file', 'data/tfrecords/orange.tfrecords',
-                       'Y output tfrecords file, default: data/tfrecords/orange.tfrecords')
+tf.flags.DEFINE_string('X_input_dir', 'data/trainA',
+                       'X input directory, default: data/trainA')
+tf.flags.DEFINE_string('Y_input_dir', 'data/trainB',
+                       'Y input directory, default: data/trainB')
+tf.flags.DEFINE_string('X_output_file', 'data/tfrecords/a.tfrecords',
+                       'X output tfrecords file, default: data/tfrecords/a.tfrecords')
+tf.flags.DEFINE_string('Y_output_file', 'data/tfrecords/b.tfrecords',
+                       'Y output tfrecords file, default: data/tfrecords/b.tfrecords')
 
 
 def data_reader(input_dir, shuffle=True):

@@ -15,7 +15,7 @@ def convert2float(image):
 def batch_convert2int(images):
   """
   Args:
-    images: 4D float tensor (batch_size, image_size, image_size, depth)
+    images: 4D float tensor (batch_size, image_length, image_height, depth)
   Returns:
     4D int tensor
   """
@@ -24,7 +24,7 @@ def batch_convert2int(images):
 def batch_convert2float(images):
   """
   Args:
-    images: 4D int tensor (batch_size, image_size, image_size, depth)
+    images: 4D int tensor (batch_size, image_length, image_height, depth)
   Returns:
     4D float tensor
   """
@@ -55,4 +55,3 @@ class ImagePool:
         return tmp
       else:
         return image
-

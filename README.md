@@ -55,7 +55,8 @@ $ python3 train.py  \
 
 Here is the list of arguments:
 ```
-usage: train.py [-h] [--batch_size BATCH_SIZE] [--image_size IMAGE_SIZE]
+usage: train.py [-h] [--batch_size BATCH_SIZE] [--image_length IMAGE_LENGTH]
+                [--image_height IMAGE_HEIGHT]
                 [--use_lsgan [USE_LSGAN]] [--nouse_lsgan]
                 [--norm NORM] [--lambda1 LAMBDA1] [--lambda2 LAMBDA2]
                 [--learning_rate LEARNING_RATE] [--beta1 BETA1]
@@ -65,8 +66,10 @@ optional arguments:
   -h, --help            show this help message and exit
   --batch_size BATCH_SIZE
                         batch size, default: 1
-  --image_size IMAGE_SIZE
-                        image size, default: 256
+  --image_length IMAGE_LENGTH
+                        image length, default: 900
+  --image_height IMAGE_HEIGHT
+                        image height, default: 50
   --use_lsgan [USE_LSGAN]
                         use lsgan (mean squared error) or cross entropy loss,
                         default: True
@@ -111,7 +114,8 @@ You can export from a checkpoint to a standalone GraphDef file as follow:
 $ python3 export_graph.py --checkpoint_dir checkpoints/${datetime} \
                           --XtoY_model apple2orange.pb \
                           --YtoX_model orange2apple.pb \
-                          --image_size 256
+                          --image_length 900\
+                          --image_height 50
 ```
 
 
@@ -122,7 +126,8 @@ After exporting model, you can use it for inference. For example:
 python3 inference.py --model pretrained/apple2orange.pb \
                      --input input_sample.jpg \
                      --output output_sample.jpg \
-                     --image_size 256
+                     --image_length 900\
+                     --image_height 50
 ```
 
 ## Pretrained models

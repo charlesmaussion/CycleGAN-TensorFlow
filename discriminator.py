@@ -12,7 +12,7 @@ class Discriminator:
   def __call__(self, input):
     """
     Args:
-      input: batch_size x image_size x image_size x 3
+      input: batch_size x image_length x image_height x 3
     Returns:
       output: 4D tensor batch_size x out_size x out_size x 1 (default 1x5x5x1)
               filled with 0.9 if real, 0.0 if fake

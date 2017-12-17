@@ -9,8 +9,8 @@ from utils import ImagePool
 FLAGS = tf.flags.FLAGS
 
 tf.flags.DEFINE_integer('batch_size', 1, 'batch size, default: 1')
-tf.flags.DEFINE_integer('image_length', 900, 'image length, default: 900')
-tf.flags.DEFINE_integer('image_height', 50, 'image height, default: 50')
+tf.flags.DEFINE_integer('image_length', 1800, 'image length, default: 1800')
+tf.flags.DEFINE_integer('image_height', 100, 'image height, default: 100')
 tf.flags.DEFINE_bool('use_lsgan', True,
                      'use lsgan (mean squared error) or cross entropy loss, default: True')
 tf.flags.DEFINE_string('norm', 'instance',

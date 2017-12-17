@@ -1,15 +1,16 @@
 import os
 import random
+from tqdm import tqdm
 
 seed = 490
 random.seed(seed)
 
 testProportion = 0.25
 
-folderA = './data/selectedLines'
-folderB = './data/times'
+folderA = './data/handWritten'
+folderB = './data/fontTyped'
 
-for folderName in [folderA, folderB]:
+for folderName in tqdm([folderA, folderB]):
     for subFolder in ['train', 'test']:
         path = os.path.join(folderName, subFolder)
 
@@ -20,6 +21,6 @@ for folderName in [folderA, folderB]:
     random.shuffle(fileNameList)
     n = len(fileNameList)
 
-    for i, fileName in enumerate(fileNameList):
-        destinationFolder = 'train' if i < int(testProportion * n) else 'test'
+    for i, fileName in tqdm(enumerate(fileNameList)):
+        destinationFolder = 'test' if i < int(testProportion * n) else 'train'
         os.system('mv {} {}'.format(os.path.join(folderName, fileName), os.path.join(folderName, destinationFolder)))

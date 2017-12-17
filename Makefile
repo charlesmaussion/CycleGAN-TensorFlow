@@ -1,7 +1,7 @@
 # set hyperparameters here
 BATCH_SIZE = 1
-IMAGE_LENGTH = 900
-IMAGE_HEIGHT = 50
+IMAGE_LENGTH = 1800
+IMAGE_HEIGHT = 100
 NGF = 64
 X = apple
 Y = orange
@@ -44,7 +44,7 @@ inference:
                              --input=$(INPUT_IMG) \
                              --output=$(OUTPUT_IMG) \
 							 --image_length=$(IMAGE_LENGTH) \
-							 --image_height=$(IMAGE_HEIGHT) 
+							 --image_height=$(IMAGE_HEIGHT)
 
 tensorboard:
 	tensorboard --logdir=$(CHECKPOINT_DIR)

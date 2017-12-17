@@ -1,19 +1,25 @@
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
+from tqdm import tqdm
+import os
 
 def create_image(text, success):
-    img = Image.open('./data/times/background.png')
+    img = Image.open('./scripts/background.png')
 
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 80)
     draw.text((0, 0), text, (0, 0, 0), font=font)
-    string = './data/times/' + str(success) + '.png'
+    string = '{}/{}.jpeg'.format(distPath, str(success))
     img.save(string)
 
 success = 0
+distPath = './data/fontTyped'
+f = open('./scripts/Metamorphosis.txt', 'r')
 
-f = open('./scripts/text.txt','r')
+if not os.path.exists(distPath):
+    os.makedirs(distPath)
+
 for line in f:
     a = line.split(' ')
     string = ''
@@ -22,8 +28,9 @@ for line in f:
         if len(string) > 49 and len(string) < 53:
             success += 1
             create_image(string, success)
+
             if success % 100 == 0:
-                print('%i images created'%(success))
+                print('{} images created'.format(str(success)))
 
     if success > 1000:
         break

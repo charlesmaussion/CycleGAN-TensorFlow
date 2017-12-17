@@ -2,8 +2,8 @@ import os
 from PIL import Image
 from tqdm import tqdm
 
-rootPath = '../data/lines'
-distPath = '../data/selectedLines'
+rootPath = './data/IAMDatabase'
+distPath = './data/handWritten'
 
 if os.path.exists(distPath):
     os.system('rm ' + distPath + '/*')
@@ -39,7 +39,7 @@ def selectLines(rootPath, distPath):
                         eligibleHeight = (targetHeight - widthDelta) <= height and height <= (targetHeight + heightDelta)
                         if eligibleWidth and eligibleHeight:
                             img = img.resize(size=(targetWidth, targetHeight))
-                            img.save(os.path.join(distPath, str(acc) + '.png'))
+                            img.save(os.path.join(distPath, str(acc) + '.jpeg'))
                             acc += 1
 
                         if acc > targetNumberSamples:

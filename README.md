@@ -7,7 +7,7 @@ From the root folder, run the following commands to generate the data:
 python scripts/data_generation.py
 python scripts/data_selection.py
 python scripts/separate_training_test.py
-python build_data.py --X_input_dir data/selectedLines/train --Y_input_dir data/times/train
+python build_data.py --X_input_dir data/handWritten/train --Y_input_dir data/fontTyped/train
 ```
 
 ## Data preparing
@@ -54,9 +54,9 @@ optional arguments:
   --batch_size BATCH_SIZE
                         batch size, default: 1
   --image_length IMAGE_LENGTH
-                        image length, default: 900
+                        image length, default: 1800
   --image_height IMAGE_HEIGHT
-                        image height, default: 50
+                        image height, default: 100
   --use_lsgan [USE_LSGAN]
                         use lsgan (mean squared error) or cross entropy loss,
                         default: True
@@ -101,8 +101,8 @@ You can export from a checkpoint to a standalone GraphDef file as follow:
 $ python3 export_graph.py --checkpoint_dir checkpoints/${datetime} \
                           --XtoY_model apple2orange.pb \
                           --YtoX_model orange2apple.pb \
-                          --image_length 900\
-                          --image_height 50
+                          --image_length 1800\
+                          --image_height 100
 ```
 
 
@@ -113,8 +113,8 @@ After exporting model, you can use it for inference. For example:
 python3 inference.py --model pretrained/apple2orange.pb \
                      --input input_sample.jpg \
                      --output output_sample.jpg \
-                     --image_length 900\
-                     --image_height 50
+                     --image_length 1800\
+                     --image_height 100
 ```
 
 ## Pretrained models

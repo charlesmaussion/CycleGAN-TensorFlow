@@ -20,7 +20,6 @@ tf.flags.DEFINE_string('X_output_file', 'data/tfrecords/a.tfrecords',
 tf.flags.DEFINE_string('Y_output_file', 'data/tfrecords/b.tfrecords',
                        'Y output tfrecords file, default: data/tfrecords/b.tfrecords')
 
-
 def data_reader(input_dir, shuffle=True):
     """Read images from input_dir then shuffle them
     Args:
@@ -31,7 +30,7 @@ def data_reader(input_dir, shuffle=True):
     file_paths = []
 
     for img_file in scandir(input_dir):
-        if img_file.name.endswith('.png') and img_file.is_file():
+        if img_file.name.endswith('.jpeg') and img_file.is_file():
             file_paths.append(img_file.path)
 
     if shuffle:

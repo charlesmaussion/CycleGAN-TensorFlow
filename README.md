@@ -1,27 +1,14 @@
-# CycleGAN-TensorFlow
-An implementation of CycleGan using TensorFlow (work in progress).
+# Use
 
-Original paper: https://arxiv.org/abs/1703.10593
+## Generating training and testing data
 
-## Results on test data
-
-### apple -> orange
-
-| Input | Output | | Input | Output | | Input | Output |
-|-------|--------|-|-------|--------|-|-------|--------|
-|![apple2orange_1](samples/real_apple2orange_1.jpg) | ![apple2orange_1](samples/fake_apple2orange_1.jpg)| |![apple2orange_2](samples/real_apple2orange_2.jpg) | ![apple2orange_2](samples/fake_apple2orange_2.jpg)| |![apple2orange_3](samples/real_apple2orange_3.jpg) | ![apple2orange_3](samples/fake_apple2orange_3.jpg)|
-
-
-### orange -> apple
-
-| Input | Output | | Input | Output | | Input | Output |
-|-------|--------|-|-------|--------|-|-------|--------|
-|![orange2apple_1](samples/real_orange2apple_1.jpg) | ![orange2apple_1](samples/fake_orange2apple_1.jpg)| |![orange2apple_2](samples/real_orange2apple_2.jpg) | ![orange2apple_2](samples/fake_orange2apple_2.jpg)| |![orange2apple_3](samples/real_orange2apple_3.jpg) | ![orange2apple_3](samples/fake_orange2apple_3.jpg)|
-
-## Environment
-
-* TensorFlow 1.0.0
-* Python 3.6.0
+From the root folder, run the following commands to generate the data:
+```
+python scripts/data_generation.py
+python scripts/data_selection.py
+python scripts/separate_training_test.py
+python build_data.py --X_input_dir data/selectedLines/train --Y_input_dir data/times/train
+```
 
 ## Data preparing
 

@@ -116,7 +116,7 @@ def uk(input, k, reuse=False, norm='instance', is_training=True, name=None, outp
 
     if not output_length:
       output_length = input_shape[1]*2
-      output_height = input_shape[2]*2
+      output_height = 25
     output_shape = [input_shape[0], output_length, output_height, k]
     fsconv = tf.nn.conv2d_transpose(input, weights,
         output_shape=output_shape,

@@ -4,33 +4,43 @@ from PIL import ImageDraw
 from tqdm import tqdm
 import os
 
-def create_image(text, success):
-    img = Image.open('./scripts/background.png')
-
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 80)
-    draw.text((0, 0), text, (0, 0, 0), font=font)
-    string = '{}/{}.jpeg'.format(distPath, str(success))
-    img.save(string)
-
-success = 0
 distPath = './data/fontTyped'
-f = open('./scripts/Metamorphosis.txt', 'r')
 
-if not os.path.exists(distPath):
-    os.makedirs(distPath)
+def create_image(distPath, text, fileName, i):
+    finalImage = Image.open('./scripts/background.png')
+    font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 40)
+    draw = ImageDraw.Draw(finalImage)
+    draw.text((0, 0), text, (0, 0, 0), font=font)
 
-for line in f:
-    a = line.split(' ')
-    string = ''
-    while len(string) < 53 and len(a) > 0:
-        string = string + ' ' + a.pop(0)
-        if len(string) > 49 and len(string) < 53:
-            success += 1
-            create_image(string, success)
+    path = '{}/{}.jpeg'.format(distPath, fileName)
+    finalImage.save(path)
+    print(i)
 
-            if success % 100 == 0:
-                print('{} images created'.format(str(success)))
+def generateFontTypedImages(distPath):
+    currentNumberSamples = 0
+    targetNumberSamples = 1000
 
-    if success > 1000:
-        break
+    if not os.path.exists(distPath):
+        os.makedirs(distPath)
+
+    with open('./scripts/Metamorphosis.txt', 'r') as f:
+        with tqdm(total = targetNumberSamples) as pbar:
+            for line in f:
+                a = line.split(' ')
+                string = ''
+
+                while len(string) < 53 and len(a) > 0:
+                    string = string + ' ' + a.pop(0)
+
+                    if len(string) > 49 and len(string) < 53:
+                        currentNumberSamples += 1
+                        pbar.update(1)
+                        create_image(distPath, string, str(currentNumberSamples), currentNumberSamples)
+
+                    if currentNumberSamples > targetNumberSamples:
+                        return
+
+            pbar.close()
+        f.close()
+
+generateFontTypedImages(distPath)

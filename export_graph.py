@@ -4,8 +4,8 @@ An example of command-line usage is:
 python export_graph.py --checkpoint_dir checkpoints/20170424-1152 \
                        --XtoY_model apple2orange.pb \
                        --YtoX_model orange2apple.pb \
-                       --image_length 1800 \
-                       --image_height 100
+                       --image_length 900 \
+                       --image_height 52
 """
 
 import tensorflow as tf
@@ -19,8 +19,8 @@ FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_string('checkpoint_dir', '', 'checkpoints directory path')
 tf.flags.DEFINE_string('XtoY_model', 'apple2orange.pb', 'XtoY model name, default: apple2orange.pb')
 tf.flags.DEFINE_string('YtoX_model', 'orange2apple.pb', 'YtoX model name, default: orange2apple.pb')
-tf.flags.DEFINE_integer('image_length', '1800', 'image length, default: 1800')
-tf.flags.DEFINE_integer('image_height', '100', 'image height, default: 100')
+tf.flags.DEFINE_integer('image_length', '900', 'image length, default: 900')
+tf.flags.DEFINE_integer('image_height', '52', 'image height, default: 52')
 tf.flags.DEFINE_integer('ngf', 64,
                         'number of gen filters in first conv layer, default: 64')
 tf.flags.DEFINE_string('norm', 'instance',

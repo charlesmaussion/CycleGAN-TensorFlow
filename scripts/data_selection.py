@@ -11,44 +11,49 @@ else:
     os.makedirs(distPath)
 
 def selectLines(rootPath, distPath):
-    acc = 0
-    targetWidth = 1800
-    targetHeight = 100
+    selectWidth = 900
+    selectHeight = 100
     widthDelta = 40
     heightDelta = 10
+
+    targetWidth = 900
+    targetHeight = 52
+
+    currentNumberSamples = 0
     targetNumberSamples = 1000
 
     widths = []
     heights = []
 
-    for folderName in tqdm(os.listdir(rootPath)):
-        folderPath = os.path.join(rootPath, folderName)
+    with tqdm(total = targetNumberSamples) as pbar:
+        for folderName in os.listdir(rootPath):
+            folderPath = os.path.join(rootPath, folderName)
 
-        if os.path.isdir(folderPath):
-            for subFolderName in tqdm(os.listdir(folderPath)):
-                subFolderPath = os.path.join(folderPath, subFolderName)
+            if os.path.isdir(folderPath):
+                for subFolderName in os.listdir(folderPath):
+                    subFolderPath = os.path.join(folderPath, subFolderName)
 
-                if os.path.isdir(subFolderPath):
-                    for fileName in os.listdir(subFolderPath):
-                        img = Image.open(os.path.join(folderPath, subFolderName, fileName))
-                        width, height = img.size
-                        widths.append(width)
-                        heights.append(height)
+                    if os.path.isdir(subFolderPath):
+                        for fileName in os.listdir(subFolderPath):
+                            img = Image.open(os.path.join(folderPath, subFolderName, fileName))
+                            width, height = img.size
+                            widths.append(width)
+                            heights.append(height)
 
-                        eligibleWidth = (targetWidth - widthDelta) <= width and width <= (targetWidth + widthDelta)
-                        eligibleHeight = (targetHeight - widthDelta) <= height and height <= (targetHeight + heightDelta)
-                        if eligibleWidth and eligibleHeight:
-                            img = img.resize(size=(targetWidth, targetHeight))
-                            img.save(os.path.join(distPath, str(acc) + '.jpeg'))
-                            acc += 1
+                            eligibleWidth = (selectWidth - widthDelta) <= width and width <= (selectWidth + widthDelta)
+                            eligibleHeight = (selectHeight - widthDelta) <= height and height <= (selectHeight + heightDelta)
+                            if eligibleWidth and eligibleHeight:
+                                img = img.resize(size=(targetWidth, targetHeight))
+                                img.save(os.path.join(distPath, str(currentNumberSamples) + '.jpeg'))
+                                currentNumberSamples += 1
+                                pbar.update(1)
 
-                        if acc > targetNumberSamples:
-                            return widths, heights
+                            if currentNumberSamples > targetNumberSamples:
+                                return widths, heights
+
+        pbar.close()
 
     return widths, heights
 
 widths, heights = selectLines(rootPath, distPath)
-
-print('\nAverages:')
-print(sum(widths) / len(widths))
-print(sum(heights) / len(heights))
+print('\nAverages:\n{}\n{}'.format(str(sum(widths) / len(widths)), str(sum(heights) / len(heights))))

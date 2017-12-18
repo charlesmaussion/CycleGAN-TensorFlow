@@ -4,7 +4,7 @@ import utils
 
 
 class Generator:
-    def __init__(self, name, is_training, ngf=64, norm='instance', image_length=900, image_height=25):
+    def __init__(self, name, is_training, ngf=64, norm='instance', image_length=450, image_height=13):
         self.name = name
         self.reuse = False
         self.ngf = ngf

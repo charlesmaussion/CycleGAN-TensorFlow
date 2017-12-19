@@ -3,8 +3,8 @@ An example of command-line usage is:
 python export_graph.py --model pretrained/apple2orange.pb \
                        --input input_sample.jpg \
                        --output output_sample.jpg \
-                       --image_length 900\
-                       --image_height 52
+                       --image_length 896\
+                       --image_height 48
 """
 
 import tensorflow as tf
@@ -17,8 +17,8 @@ FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_string('model', '', 'model path (.pb)')
 tf.flags.DEFINE_string('input', 'input_sample.jpg', 'input image path (.jpg)')
 tf.flags.DEFINE_string('output', 'output_sample.jpg', 'output image path (.jpg)')
-tf.flags.DEFINE_integer('image_length', 900, 'image length, default: 900')
-tf.flags.DEFINE_integer('image_height', 52, 'image height, default: 52')
+tf.flags.DEFINE_integer('image_length', 896, 'image length, default: 896')
+tf.flags.DEFINE_integer('image_height', 48, 'image height, default: 48')
 
 def inference():
   graph = tf.Graph()

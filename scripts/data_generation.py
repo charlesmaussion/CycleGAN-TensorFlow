@@ -14,7 +14,6 @@ def create_image(distPath, text, fileName, i):
 
     path = '{}/{}.jpeg'.format(distPath, fileName)
     finalImage.save(path)
-    print(i)
 
 def generateFontTypedImages(distPath):
     currentNumberSamples = 0
@@ -41,6 +40,5 @@ def generateFontTypedImages(distPath):
                         return
 
             pbar.close()
-        f.close()
 
 generateFontTypedImages(distPath)

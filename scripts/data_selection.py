@@ -11,13 +11,13 @@ else:
     os.makedirs(distPath)
 
 def selectLines(rootPath, distPath):
-    selectWidth = 900
+    selectWidth = 1800
     selectHeight = 100
     widthDelta = 40
     heightDelta = 10
 
-    targetWidth = 900
-    targetHeight = 52
+    targetWidth = 896
+    targetHeight = 48
 
     currentNumberSamples = 0
     targetNumberSamples = 1000
@@ -51,7 +51,7 @@ def selectLines(rootPath, distPath):
                             if currentNumberSamples > targetNumberSamples:
                                 return widths, heights
 
-        pbar.close()
+        # pbar.close()
 
     return widths, heights
 

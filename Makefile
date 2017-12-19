@@ -1,7 +1,7 @@
 # set hyperparameters here
 BATCH_SIZE = 1
-IMAGE_LENGTH = 900
-IMAGE_HEIGHT = 52
+IMAGE_LENGTH = 896
+IMAGE_HEIGHT = 48
 NGF = 64
 X = apple
 Y = orange

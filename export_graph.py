@@ -1,11 +1,11 @@
 """ Freeze variables and convert 2 generator networks to 2 GraphDef files.
 This makes file size smaller and can be used for inference in production.
 An example of command-line usage is:
-python export_graph.py --checkpoint_dir checkpoints/20170424-1148 \
+python export_graph.py --checkpoint_dir checkpoints/20170424-1124 \
                        --XtoY_model apple2orange.pb \
                        --YtoX_model orange2apple.pb \
-                       --image_length 896 \
-                       --image_height 48
+                       --image_length 448 \
+                       --image_height 24
 """
 
 import tensorflow as tf
@@ -19,8 +19,8 @@ FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_string('checkpoint_dir', '', 'checkpoints directory path')
 tf.flags.DEFINE_string('XtoY_model', 'apple2orange.pb', 'XtoY model name, default: apple2orange.pb')
 tf.flags.DEFINE_string('YtoX_model', 'orange2apple.pb', 'YtoX model name, default: orange2apple.pb')
-tf.flags.DEFINE_integer('image_length', '896', 'image length, default: 896')
-tf.flags.DEFINE_integer('image_height', '48', 'image height, default: 48')
+tf.flags.DEFINE_integer('image_length', '448', 'image length, default: 448')
+tf.flags.DEFINE_integer('image_height', '24', 'image height, default: 24')
 tf.flags.DEFINE_integer('ngf', 64,
                         'number of gen filters in first conv layer, default: 64')
 tf.flags.DEFINE_string('norm', 'instance',

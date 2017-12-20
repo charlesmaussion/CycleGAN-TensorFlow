@@ -54,9 +54,9 @@ optional arguments:
   --batch_size BATCH_SIZE
                         batch size, default: 1
   --image_length IMAGE_LENGTH
-                        image length, default: 896
+                        image length, default: 448
   --image_height IMAGE_HEIGHT
-                        image height, default: 48
+                        image height, default: 24
   --use_lsgan [USE_LSGAN]
                         use lsgan (mean squared error) or cross entropy loss,
                         default: True
@@ -101,8 +101,8 @@ You can export from a checkpoint to a standalone GraphDef file as follow:
 $ python3 export_graph.py --checkpoint_dir checkpoints/${datetime} \
                           --XtoY_model apple2orange.pb \
                           --YtoX_model orange2apple.pb \
-                          --image_length 896\
-                          --image_height 48
+                          --image_length 448\
+                          --image_height 24
 ```
 
 
@@ -113,8 +113,8 @@ After exporting model, you can use it for inference. For example:
 python3 inference.py --model pretrained/apple2orange.pb \
                      --input input_sample.jpg \
                      --output output_sample.jpg \
-                     --image_length 896\
-                     --image_height 48
+                     --image_length 448\
+                     --image_height 24
 ```
 
 ## Pretrained models

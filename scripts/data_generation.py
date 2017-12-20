@@ -7,7 +7,7 @@ import os
 distPath = './data/fontTyped'
 
 def create_image(distPath, text, fileName, i):
-    finalImage = Image.open('./scripts/background.png')
+    finalImage = Image.open('./scripts/background.jpg')
     font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 40)
     draw = ImageDraw.Draw(finalImage)
     draw.text((0, 0), text, (0, 0, 0), font=font)

@@ -39,7 +39,6 @@ def export_graph(model_name, XtoY=True):
     else:
       output_image = cycle_gan.F.sample(tf.expand_dims(input_image, 0))
 
-
     output_image = tf.identity(output_image, name='output_image')
     restore_saver = tf.train.Saver()
     export_saver = tf.train.Saver()

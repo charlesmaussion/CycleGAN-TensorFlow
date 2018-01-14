@@ -4,10 +4,10 @@
 
 From the root folder, run the following commands to generate the data:
 ```
-python3 scripts/data_generation.py
-python3 scripts/data_selection.py
-python3 scripts/separate_training_test.py
-python3 build_data.py --X_input_dir data/handWritten/train --Y_input_dir data/fontTyped/train
+python scripts/data_generation.py
+python scripts/data_selection.py
+python scripts/separate_training_test.py
+python build_data.py --X_input_dir data/handWritten/train --Y_input_dir data/fontTyped/train
 ```
 
 ## Data preparing

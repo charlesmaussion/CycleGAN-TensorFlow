@@ -27,9 +27,12 @@ def inference():
     with tf.gfile.FastGFile(FLAGS.input, 'rb') as f:
       image_data = f.read()
       input_image = tf.image.decode_jpeg(image_data, channels=3)
+      input_image = tf.image.transpose_image(input_image)
       input_image = tf.image.resize_images(input_image, size=(FLAGS.image_length, FLAGS.image_height))
+      # input_image = tf.image.resize_images(input_image, size=(FLAGS.image_height, FLAGS.image_length))
       input_image = utils.convert2float(input_image)
       input_image.set_shape([FLAGS.image_length, FLAGS.image_height, 3])
+      # input_image.set_shape([FLAGS.image_height, FLAGS.image_length, 3])
 
     with tf.gfile.FastGFile(FLAGS.model, 'rb') as model_file:
       graph_def = tf.GraphDef()

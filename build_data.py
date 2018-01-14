@@ -11,9 +11,9 @@ except ImportError:
 
 FLAGS = tf.flags.FLAGS
 
-tf.flags.DEFINE_string('X_input_dir', 'data/trainA',
+tf.flags.DEFINE_string('X_input_dir', 'data/fontTyped/train',
                        'X input directory, default: data/trainA')
-tf.flags.DEFINE_string('Y_input_dir', 'data/trainB',
+tf.flags.DEFINE_string('Y_input_dir', 'data/handWritten/train',
                        'Y input directory, default: data/trainB')
 tf.flags.DEFINE_string('X_output_file', 'data/tfrecords/a.tfrecords',
                        'X output tfrecords file, default: data/tfrecords/a.tfrecords')

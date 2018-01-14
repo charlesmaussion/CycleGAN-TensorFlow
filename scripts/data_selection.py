@@ -16,8 +16,8 @@ def selectLines(rootPath, distPath):
     widthDelta = 40
     heightDelta = 10
 
-    targetWidth = 448
-    targetHeight = 24
+    targetWidth = 128
+    targetHeight = 128
 
     currentNumberSamples = 0
     targetNumberSamples = 1000

@@ -69,6 +69,9 @@ class CycleGAN:
             shape=[batch_size, image_length, image_height, 3])
         self.fake_y = tf.placeholder(tf.float32,
             shape=[batch_size, image_length, image_height, 3])
+        self.random_index = tf.placeholder(tf.int32)
+        self.text_loss = tf.placeholder(tf.float32)
+        self.acc = 0
 
     def model(self):
         X_reader = Reader(self.X_train_file, name='X',
@@ -80,19 +83,21 @@ class CycleGAN:
         y = Y_reader.feed()
 
         cycle_loss = self.cycle_consistency_loss(self.G, self.F, x, y)
-        text_cycle_loss = self.text_cycle_consistency_loss(self.G, self.F, x)
 
         # X -> Y
         fake_y = self.G(x)
         G_gan_loss = self.generator_loss(self.D_Y, fake_y, use_lsgan=self.use_lsgan)
-        G_loss = G_gan_loss + cycle_loss + text_cycle_loss
+        G_loss = G_gan_loss + cycle_loss + self.text_loss
         D_Y_loss = self.discriminator_loss(self.D_Y, y, self.fake_y, use_lsgan=self.use_lsgan)
 
         # Y -> X
         fake_x = self.F(y)
         F_gan_loss = self.generator_loss(self.D_X, fake_x, use_lsgan=self.use_lsgan)
-        F_loss = F_gan_loss + cycle_loss + text_cycle_loss
+        F_loss = F_gan_loss + cycle_loss + self.text_loss
         D_X_loss = self.discriminator_loss(self.D_X, x, self.fake_x, use_lsgan=self.use_lsgan)
+
+        y_rand = tf.squeeze(tf.slice(y, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+        fake_fake_y_rand = tf.squeeze(tf.slice(self.G(fake_x), [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
 
         # summary
         tf.summary.histogram('D_Y/true', self.D_Y(y))
@@ -111,7 +116,7 @@ class CycleGAN:
         tf.summary.image('Y/generated', utils.batch_convert2int(self.F(y)))
         tf.summary.image('Y/reconstruction', utils.batch_convert2int(self.G(self.F(y))))
 
-        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x
+        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, y_rand, fake_fake_y_rand
 
     def optimize(self, G_loss, D_Y_loss, F_loss, D_X_loss):
         def make_optimizer(loss, variables, name='Adam'):
@@ -189,7 +194,7 @@ class CycleGAN:
         loss = self.lambda1*forward_loss + self.lambda2*backward_loss
         return loss
 
-    def levenshtein(s, t):
+    def levenshtein(self, s, t):
         ''' From Wikipedia article; Iterative with two matrix rows. '''
         if s == t: return 0
         elif len(s) == 0: return len(t)
@@ -208,43 +213,44 @@ class CycleGAN:
 
         return v1[len(t)]
 
-    def text_cycle_consistency_loss(self, G, F, x):
+    def text_cycle_consistency_loss(self, x_val, cycle_x_val):
         """ cycle consistency loss (L1 norm)
         """
-        print(self.batch_size)
-        sampledIndex = random.randint(0, self.batch_size-1)
-        inputText = self.image_to_text(data=tf.slice(x, [sampledIndex,0,0,0], [1,-1,-1,-1]))
-        print('inputText')
-        print(inputText)
-        cycleText = self.image_to_text(data=tf.slice(F(G(x)), [sampledIndex,0,0,0], [1,-1,-1,-1]))
-        print('cycleText')
-        print(cycleText)
+
+        inputText = self.image_to_text(x_val)
+        print('inputText: {}'.format(inputText))
+
+        cycleText = self.image_to_text(cycle_x_val)
+        print('cycleText: {}'.format(cycleText))
+
         loss = self.lambdaText * self.levenshtein(inputText, cycleText)
         return loss
 
-    def image_to_text(self, imagePath=None, data=None):
+    def parseData(self, data):
+        output = []
+        for row in data:
+            for col in row:
+                output.append(tuple(col))
+
+        return output
+
+    def image_to_text(self, data):
+        self.acc += 1
+        parsedData = self.parseData(data)
+
         tools = pyocr.get_available_tools()
         if len(tools) == 0:
             print('No OCR tool found')
             sys.exit(1)
-        # The tools are returned in the recommended order of usage
+
         tool = tools[0]
-        # print("Will use tool '%s'" % (tool.get_name()))
-        # Ex: Will use tool 'libtesseract'
-
         langs = tool.get_available_languages()
-        # print("Available languages: %s" % ', '.join(langs))
         lang = langs[0]
-        # print("Will use lang '%s'" % (lang))
 
-        if imagePath:
-            image = Image.open(imagePath)
-        else:
-            sess = tf.Session()
-            with sess.as_default():
-                [batch_size, width, height, channels] = data.get_shape().as_list()
-                image = Image.new('RGB', (width, height), 'white')
-                image.putdata(tf.squeeze(data, [0]).eval(), 1, 0)
+        image = Image.new('RGB', (self.image_length, self.image_height), 'white')
+        print(parsedData)
+        image.putdata(parsedData, 128, 128)
+        image.save('./test{}.jpg'.format(str(self.acc)))
 
         txt = tool.image_to_string(
             image,

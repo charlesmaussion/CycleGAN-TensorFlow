@@ -23,7 +23,7 @@ class CycleGAN:
          norm='instance',
          lambda1=10.0,
          lambda2=10.0,
-         lambdaText=10.0,
+         lambdaText=100.0,
          learning_rate=2e-4,
          beta1=0.5,
          ngf=64
@@ -71,7 +71,16 @@ class CycleGAN:
             shape=[batch_size, image_length, image_height, 3])
         self.random_index = tf.placeholder(tf.int32)
         self.text_loss = tf.placeholder(tf.float32)
+
         self.acc = 0
+        tools = pyocr.get_available_tools()
+        if len(tools) == 0:
+            print('No OCR tool found')
+            sys.exit(1)
+
+        self.tool = tools[0]
+        langs = self.tool.get_available_languages()
+        self.lang = langs[0]
 
     def model(self):
         X_reader = Reader(self.X_train_file, name='X',
@@ -96,8 +105,8 @@ class CycleGAN:
         F_loss = F_gan_loss + cycle_loss + self.text_loss
         D_X_loss = self.discriminator_loss(self.D_X, x, self.fake_x, use_lsgan=self.use_lsgan)
 
-        y_rand = tf.squeeze(tf.slice(y, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
-        fake_fake_y_rand = tf.squeeze(tf.slice(self.G(fake_x), [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+        x_rand = tf.squeeze(tf.slice(x, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+        fake_fake_x_rand = tf.squeeze(tf.slice(self.F(fake_y), [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
 
         # summary
         tf.summary.histogram('D_Y/true', self.D_Y(y))
@@ -116,7 +125,7 @@ class CycleGAN:
         tf.summary.image('Y/generated', utils.batch_convert2int(self.F(y)))
         tf.summary.image('Y/reconstruction', utils.batch_convert2int(self.G(self.F(y))))
 
-        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, y_rand, fake_fake_y_rand
+        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand
 
     def optimize(self, G_loss, D_Y_loss, F_loss, D_X_loss):
         def make_optimizer(loss, variables, name='Adam'):
@@ -197,8 +206,8 @@ class CycleGAN:
     def levenshtein(self, s, t):
         ''' From Wikipedia article; Iterative with two matrix rows. '''
         if s == t: return 0
-        elif len(s) == 0: return len(t)
-        elif len(t) == 0: return len(s)
+        elif len(s) == 0: return len(t) / max(1, len(s))
+        elif len(t) == 0: return len(s) / max(1, len(s))
         v0 = [None] * (len(t) + 1)
         v1 = [None] * (len(t) + 1)
         for i in range(len(v0)):
@@ -211,7 +220,7 @@ class CycleGAN:
             for j in range(len(v0)):
                 v0[j] = v1[j]
 
-        return v1[len(t)]
+        return v1[len(t)] / max(1, len(s))
 
     def text_cycle_consistency_loss(self, x_val, cycle_x_val):
         """ cycle consistency loss (L1 norm)
@@ -228,35 +237,25 @@ class CycleGAN:
 
     def parseData(self, data):
         output = []
-        for row in data:
-            for col in row:
-                output.append(tuple(col))
+        for j in range(self.image_height):
+            for i in range(self.image_length):
+                output.append(tuple(map(lambda x: int(128 * x + 128), data[i][j])))
 
         return output
 
     def image_to_text(self, data):
-        self.acc += 1
         parsedData = self.parseData(data)
 
-        tools = pyocr.get_available_tools()
-        if len(tools) == 0:
-            print('No OCR tool found')
-            sys.exit(1)
-
-        tool = tools[0]
-        langs = tool.get_available_languages()
-        lang = langs[0]
-
         image = Image.new('RGB', (self.image_length, self.image_height), 'white')
-        print(parsedData)
-        image.putdata(parsedData, 128, 128)
-        image.save('./test{}.jpg'.format(str(self.acc)))
+        image.putdata(parsedData)
+        self.acc += 1
+        if self.acc % 50 == 0:
+            image.save('./test_images/test{}.jpg'.format(str(self.acc)))
 
-        txt = tool.image_to_string(
+        txt = self.tool.image_to_string(
             image,
-            lang=lang,
+            lang=self.lang,
             builder=pyocr.builders.TextBuilder()
         )
 
-        # txt is a Python string
         return txt

@@ -39,6 +39,7 @@ class Reader():
 
       image_buffer = features['image/encoded_image']
       image = tf.image.decode_jpeg(image_buffer, channels=3)
+      image = tf.image.transpose_image(image)
       image = self._preprocess(image)
       images = tf.train.shuffle_batch(
             [image], batch_size=self.batch_size, num_threads=self.num_threads,

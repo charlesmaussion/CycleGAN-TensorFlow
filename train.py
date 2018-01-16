@@ -97,9 +97,6 @@ def train():
             feed_dict={cycle_gan.random_index: sampledIndex}
         )
 
-        with open('./read.jpg', 'wb') as f:
-          f.write(x_rand_val)
-
         text_loss_val = cycle_gan.text_cycle_consistency_loss(x_rand_val, fake_fake_x_rand_val)
 
         # train

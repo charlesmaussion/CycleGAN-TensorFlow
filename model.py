@@ -248,9 +248,10 @@ class CycleGAN:
 
         image = Image.new('RGB', (self.image_length, self.image_height), 'white')
         image.putdata(parsedData)
-        self.acc += 1
+
         if self.acc % 50 == 0:
             image.save('./test_images/test{}.jpg'.format(str(self.acc)))
+        self.acc += 1
 
         txt = self.tool.image_to_string(
             image,

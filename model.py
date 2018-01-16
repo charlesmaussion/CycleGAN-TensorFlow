@@ -2,6 +2,7 @@ import tensorflow as tf
 import ops
 import utils
 import random
+import sys
 from reader import Reader
 from discriminator import Discriminator
 from generator import Generator

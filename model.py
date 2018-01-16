@@ -25,6 +25,7 @@ class CycleGAN:
          lambda1=10.0,
          lambda2=10.0,
          lambdaText=100.0,
+         lambdaHand=100.0,
          learning_rate=2e-4,
          beta1=0.5,
          ngf=64
@@ -72,6 +73,7 @@ class CycleGAN:
             shape=[batch_size, image_length, image_height, 3])
         self.random_index = tf.placeholder(tf.int32)
         self.text_loss = tf.placeholder(tf.float32)
+        self.hand_loss = tf.placeholder(tf.float32)
 
         self.acc = 0
         tools = pyocr.get_available_tools()
@@ -85,12 +87,14 @@ class CycleGAN:
 
     def model(self):
         X_reader = Reader(self.X_train_file, name='X',
-            image_length = self.image_length, image_height = self.image_height, batch_size=self.batch_size)
+            image_length = self.image_length, image_height = self.image_height, batch_size=self.batch_size,
+            output_ground_truth=False)
         Y_reader = Reader(self.Y_train_file, name='Y',
-            image_length = self.image_length, image_height = self.image_height, batch_size=self.batch_size)
+            image_length = self.image_length, image_height = self.image_height, batch_size=self.batch_size,
+            output_ground_truth=True)
 
-        x = X_reader.feed()
-        y = Y_reader.feed()
+        x, _ = X_reader.feed()
+        y, ground_truth_sentences = Y_reader.feed()
 
         cycle_loss = self.cycle_consistency_loss(self.G, self.F, x, y)
 
@@ -103,11 +107,14 @@ class CycleGAN:
         # Y -> X
         fake_x = self.F(y)
         F_gan_loss = self.generator_loss(self.D_X, fake_x, use_lsgan=self.use_lsgan)
-        F_loss = F_gan_loss + cycle_loss + self.text_loss
+        F_loss = F_gan_loss + cycle_loss + self.text_loss + self.hand_loss
         D_X_loss = self.discriminator_loss(self.D_X, x, self.fake_x, use_lsgan=self.use_lsgan)
 
         x_rand = tf.squeeze(tf.slice(x, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
         fake_fake_x_rand = tf.squeeze(tf.slice(self.F(fake_y), [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+
+        fake_x_rand = tf.squeeze(tf.slice(fake_x, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+        y_rand_ground_truth = tf.squeeze(tf.slice(ground_truth_sentences, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
 
         # summary
         tf.summary.histogram('D_Y/true', self.D_Y(y))
@@ -126,7 +133,7 @@ class CycleGAN:
         tf.summary.image('Y/generated', utils.batch_convert2int(self.F(y)))
         tf.summary.image('Y/reconstruction', utils.batch_convert2int(self.G(self.F(y))))
 
-        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand
+        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_ground_truth
 
     def optimize(self, G_loss, D_Y_loss, F_loss, D_X_loss):
         def make_optimizer(loss, variables, name='Adam'):
@@ -261,3 +268,15 @@ class CycleGAN:
         )
 
         return txt
+
+    def hand_consistency_loss(self, fake_x_val, ground_truth_val):
+        """ cycle consistency loss (L1 norm)
+        """
+
+        print('groundTruth: {}'.format(ground_truth_val))
+
+        inputText = self.image_to_text(fake_x_val)
+        print('handText: {}'.format(inputText))
+
+        loss = self.lambdaHand * self.levenshtein(ground_truth_val, inputText)
+        return loss

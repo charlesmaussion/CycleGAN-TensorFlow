@@ -64,7 +64,7 @@ def train():
         beta1=FLAGS.beta1,
         ngf=FLAGS.ngf
     )
-    G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand = cycle_gan.model()
+    G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_ground_truth = cycle_gan.model()
     optimizers = cycle_gan.optimize(G_loss, D_Y_loss, F_loss, D_X_loss)
 
     summary_op = tf.summary.merge_all()
@@ -92,12 +92,13 @@ def train():
       while not coord.should_stop():
         # get previously generated images
         sampledIndex = random.randint(0, cycle_gan.batch_size - 1)
-        fake_y_val, fake_x_val, x_rand_val, fake_fake_x_rand_val = sess.run(
-            [fake_y, fake_x, x_rand, fake_fake_x_rand],
+        fake_y_val, fake_x_val, x_rand_val, fake_fake_x_rand_val, fake_x_rand_val, y_rand_ground_truth_val = sess.run(
+            [fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_ground_truth],
             feed_dict={cycle_gan.random_index: sampledIndex}
         )
 
         text_loss_val = cycle_gan.text_cycle_consistency_loss(x_rand_val, fake_fake_x_rand_val)
+        hand_loss_val = cycle_gan.hand_loss_val(fake_x_rand_val, y_rand_ground_truth_val)
 
         # train
         _, G_loss_val, D_Y_loss_val, F_loss_val, D_X_loss_val, summary = (
@@ -105,7 +106,8 @@ def train():
                   [optimizers, G_loss, D_Y_loss, F_loss, D_X_loss, summary_op],
                   feed_dict={cycle_gan.fake_y: fake_Y_pool.query(fake_y_val),
                              cycle_gan.fake_x: fake_X_pool.query(fake_x_val),
-                             cycle_gan.text_loss: text_loss_val}
+                             cycle_gan.text_loss: text_loss_val,
+                             cycle_gan.hand_loss: hand_loss_val}
               )
         )
 

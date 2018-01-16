@@ -3,7 +3,7 @@ import utils
 
 class Reader():
   def __init__(self, tfrecords_file, image_length=448, image_height=24,
-    min_queue_examples=1000, batch_size=1, num_threads=8, name=''):
+    min_queue_examples=1000, batch_size=1, num_threads=8, name='', output_ground_truth=False):
     """
     Args:
       tfrecords_file: string, tfrecords file path
@@ -19,6 +19,25 @@ class Reader():
     self.num_threads = num_threads
     self.reader = tf.TFRecordReader()
     self.name = name
+    self.output_ground_truth = output_ground_truth
+
+    with open('./scripts/train_ground_truth.txt') as f:
+        data = f.readlines()
+        groundTruthDict = {}
+
+        for _, line in enumerate(data):
+            chunks = line.split('\|/')
+            fileNumber = chunks[0]
+            groundTruth = chunks[-1]
+
+            groundTruthDict[fileNumber] = groundTruth
+
+        self.ground_truth_sentences = tf.Variable(list(map(
+            lambda x: x[1],
+            sorted(groundTruthDict.items(), key=lambda x: int(x[0]))
+        )), tf.string)
+
+        f.close()
 
   def feed(self):
     """
@@ -41,14 +60,23 @@ class Reader():
       image = tf.image.decode_jpeg(image_buffer, channels=3)
       image = tf.image.transpose_image(image)
       image = self._preprocess(image)
-      images = tf.train.shuffle_batch(
+
+      if self.output_ground_truth:
+        images, ground_truth_sentences = tf.train.shuffle_batch(
+                [image, self.ground_truth_sentences], batch_size=self.batch_size, num_threads=self.num_threads,
+                capacity=self.min_queue_examples + 3*self.batch_size,
+                min_after_dequeue=self.min_queue_examples
+        )
+      else:
+        ground_truth_sentences = []
+        images = tf.train.shuffle_batch(
             [image], batch_size=self.batch_size, num_threads=self.num_threads,
             capacity=self.min_queue_examples + 3*self.batch_size,
             min_after_dequeue=self.min_queue_examples
-          )
+        )
 
       tf.summary.image('_input', images)
-    return images
+    return images, ground_truth_sentences
 
   def _preprocess(self, image):
     image = tf.image.resize_images(image, size=(self.image_length, self.image_height))
@@ -63,8 +91,8 @@ def test_reader():
   with tf.Graph().as_default():
     reader1 = Reader(TRAIN_FILE_1, batch_size=2)
     reader2 = Reader(TRAIN_FILE_2, batch_size=2)
-    images_op1 = reader1.feed()
-    images_op2 = reader2.feed()
+    images_op1, _ = reader1.feed()
+    images_op2, _ = reader2.feed()
 
     sess = tf.Session()
     init = tf.global_variables_initializer()

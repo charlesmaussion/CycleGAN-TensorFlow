@@ -21,24 +21,6 @@ class Reader():
     self.name = name
     self.output_ground_truth = output_ground_truth
 
-    with open('./scripts/train_ground_truth.txt') as f:
-        data = f.readlines()
-        groundTruthDict = {}
-
-        for _, line in enumerate(data):
-            chunks = line.split('\|/')
-            fileNumber = chunks[0]
-            groundTruth = chunks[-1]
-
-            groundTruthDict[fileNumber] = groundTruth
-
-        self.ground_truth_sentences = tf.Variable(list(map(
-            lambda x: x[1],
-            sorted(groundTruthDict.items(), key=lambda x: int(x[0]))
-        )), tf.string)
-
-        f.close()
-
   def feed(self):
     """
     Returns:
@@ -57,18 +39,19 @@ class Reader():
           })
 
       image_buffer = features['image/encoded_image']
+      image_name = features['image/file_name']
       image = tf.image.decode_jpeg(image_buffer, channels=3)
       image = tf.image.transpose_image(image)
       image = self._preprocess(image)
 
       if self.output_ground_truth:
-        images, ground_truth_sentences = tf.train.shuffle_batch(
-                [image, self.ground_truth_sentences], batch_size=self.batch_size, num_threads=self.num_threads,
-                capacity=self.min_queue_examples + 3*self.batch_size,
-                min_after_dequeue=self.min_queue_examples
+        images, images_file_names = tf.train.shuffle_batch(
+            [image, image_name], batch_size=self.batch_size, num_threads=self.num_threads,
+            capacity=self.min_queue_examples + 3*self.batch_size,
+            min_after_dequeue=self.min_queue_examples
         )
       else:
-        ground_truth_sentences = []
+        images_file_names = []
         images = tf.train.shuffle_batch(
             [image], batch_size=self.batch_size, num_threads=self.num_threads,
             capacity=self.min_queue_examples + 3*self.batch_size,
@@ -76,7 +59,7 @@ class Reader():
         )
 
       tf.summary.image('_input', images)
-    return images, ground_truth_sentences
+    return images, images_file_names
 
   def _preprocess(self, image):
     image = tf.image.resize_images(image, size=(self.image_length, self.image_height))

@@ -24,8 +24,8 @@ class CycleGAN:
          norm='instance',
          lambda1=10.0,
          lambda2=10.0,
-         lambdaText=100.0,
-         lambdaHand=100.0,
+         lambdaText=50.0,
+         lambdaHand=50.0,
          learning_rate=2e-4,
          beta1=0.5,
          ngf=64
@@ -48,6 +48,7 @@ class CycleGAN:
         self.lambda1 = lambda1
         self.lambda2 = lambda2
         self.lambdaText = lambdaText
+        self.lambdaHand = lambdaHand
         self.use_lsgan = use_lsgan
         use_sigmoid = not use_lsgan
         self.batch_size = batch_size
@@ -94,14 +95,14 @@ class CycleGAN:
             output_ground_truth=True)
 
         x, _ = X_reader.feed()
-        y, ground_truth_sentences = Y_reader.feed()
+        y, y_rand_file_names = Y_reader.feed()
 
         cycle_loss = self.cycle_consistency_loss(self.G, self.F, x, y)
 
         # X -> Y
         fake_y = self.G(x)
         G_gan_loss = self.generator_loss(self.D_Y, fake_y, use_lsgan=self.use_lsgan)
-        G_loss = G_gan_loss + cycle_loss + self.text_loss
+        G_loss = G_gan_loss + cycle_loss + 2 * self.text_loss
         D_Y_loss = self.discriminator_loss(self.D_Y, y, self.fake_y, use_lsgan=self.use_lsgan)
 
         # Y -> X
@@ -114,7 +115,7 @@ class CycleGAN:
         fake_fake_x_rand = tf.squeeze(tf.slice(self.F(fake_y), [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
 
         fake_x_rand = tf.squeeze(tf.slice(fake_x, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
-        y_rand_ground_truth = tf.squeeze(tf.slice(ground_truth_sentences, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
+        y_rand_file_name = y_rand_file_names
 
         # summary
         tf.summary.histogram('D_Y/true', self.D_Y(y))
@@ -133,7 +134,7 @@ class CycleGAN:
         tf.summary.image('Y/generated', utils.batch_convert2int(self.F(y)))
         tf.summary.image('Y/reconstruction', utils.batch_convert2int(self.G(self.F(y))))
 
-        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_ground_truth
+        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_file_name
 
     def optimize(self, G_loss, D_Y_loss, F_loss, D_X_loss):
         def make_optimizer(loss, variables, name='Adam'):

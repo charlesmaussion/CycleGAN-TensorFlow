@@ -13,28 +13,28 @@ tf.flags.DEFINE_integer('batch_size', 1, 'batch size, default: 1')
 tf.flags.DEFINE_integer('image_length', 448, 'image length, default: 448')
 tf.flags.DEFINE_integer('image_height', 24, 'image height, default: 24')
 tf.flags.DEFINE_bool('use_lsgan', True,
-                                         'use lsgan (mean squared error) or cross entropy loss, default: True')
+    'use lsgan (mean squared error) or cross entropy loss, default: True')
 tf.flags.DEFINE_string('norm', 'instance',
-                                             '[instance, batch] use instance norm or batch norm, default: instance')
+    '[instance, batch] use instance norm or batch norm, default: instance')
 tf.flags.DEFINE_integer('lambda1', 10.0,
-                                                'weight for forward cycle loss (X->Y->X), default: 10.0')
+    'weight for forward cycle loss (X->Y->X), default: 10.0')
 tf.flags.DEFINE_integer('lambda2', 10.0,
-                                                'weight for backward cycle loss (Y->X->Y), default: 10.0')
+    'weight for backward cycle loss (Y->X->Y), default: 10.0')
 tf.flags.DEFINE_float('learning_rate', 2e-4,
-                                            'initial learning rate for Adam, default: 0.0002')
+    'initial learning rate for Adam, default: 0.0002')
 tf.flags.DEFINE_float('beta1', 0.5,
-                                            'momentum term of Adam, default: 0.5')
+    'momentum term of Adam, default: 0.5')
 tf.flags.DEFINE_float('pool_size', 50,
-                                            'size of image buffer that stores previously generated images, default: 50')
+    'size of image buffer that stores previously generated images, default: 50')
 tf.flags.DEFINE_integer('ngf', 64,
-                                                'number of gen filters in first conv layer, default: 64')
+    'number of gen filters in first conv layer, default: 64')
 
 tf.flags.DEFINE_string('X', 'data/tfrecords/a.tfrecords',
-                                             'X tfrecords file for training, default: data/tfrecords/a.tfrecords')
+    'X tfrecords file for training, default: data/tfrecords/a.tfrecords')
 tf.flags.DEFINE_string('Y', 'data/tfrecords/b.tfrecords',
-                                             'Y tfrecords file for training, default: data/tfrecords/b.tfrecords')
+    'Y tfrecords file for training, default: data/tfrecords/b.tfrecords')
 tf.flags.DEFINE_string('load_model', None,
-                                                'folder of saved model that you wish to continue training (e.g. 20170602-1936), default: None')
+    'folder of saved model that you wish to continue training (e.g. 20170602-1936), default: None')
 
 
 def train():
@@ -121,18 +121,17 @@ def train():
                 y_rand_ground_truth_val = groundTruthDict[fileName]
 
                 generated_image_data = cycle_gan.create_image(y_rand_ground_truth_val)
+                print(len(generated_image_data))
                 generated_image_val = [generated_image_data[c:c+cycle_gan.image_height] for c in range(0, len(generated_image_data), cycle_gan.image_height)]
 
-                for j in range(FLAGS.image_length):
-                    for i in range(FLAGS.image_height):
-                        generated_image_data[i].append(generated_image_data)
                 # train
                 _, G_loss_val, D_Y_loss_val, F_loss_val, D_X_loss_val, summary = (
                     sess.run(
                         [optimizers, G_loss, D_Y_loss, F_loss, D_X_loss, summary_op],
                         feed_dict={cycle_gan.fake_y: fake_Y_pool.query(fake_y_val),
                                    cycle_gan.fake_x: fake_X_pool.query(fake_x_val),
-                                   cycle_gan.generated_image: generated_image_val}
+                                   cycle_gan.generated_image: generated_image_val,
+                                   cycle_gan.random_index: sampledIndex}
                     )
                 )
 

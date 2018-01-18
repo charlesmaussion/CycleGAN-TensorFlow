@@ -75,7 +75,7 @@ class CycleGAN:
             shape=[batch_size, image_length, image_height, 3])
         self.random_index = tf.placeholder(tf.int32)
         self.generated_image = tf.placeholder(tf.float32,
-            shape=[image_height, image_length, 3])
+            shape=[image_length, image_height, 3])
 
         self.acc = 0
         tools = pyocr.get_available_tools()
@@ -98,7 +98,7 @@ class CycleGAN:
         y, y_rand_file_names = Y_reader.feed()
 
         cycle_loss = self.cycle_consistency_loss(self.G, self.F, x, y)
-        f_text_loss = self.F_textual_loss(self.F, y, tf.image.transpose_image(self.generated_image))
+        f_text_loss = self.F_textual_loss(self.F, y, self.generated_image)
 
         # X -> Y
         fake_y = self.G(x)
@@ -223,9 +223,9 @@ class CycleGAN:
         return loss
 
     def create_image(self, text):
-        finalImage = Image.open('./scripts/background.jpg')
+        finalImage = Image.new('RGB', (self.image_length, self.image_height), 'white')
         font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 20)
         draw = ImageDraw.Draw(finalImage)
         draw.text((0, 0), text, (0, 0, 0), font=font)
 
-        return finalImage.getdata()
+        return list(finalImage.getdata())

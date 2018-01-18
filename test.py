@@ -41,7 +41,7 @@ if __name__ == '__main__':
         # parsedArray = parseArray(imageArray)
         data = imagep.getdata()
         imagep.putdata(data)
-        data1 = [data[i] for i in range(448*24)]
+        data1 = [data[i] for i in range(448*24)]i
         subList = [data1[c:c+24] for c in range(0, len(data1), 24)]
         print(subList)
         data2 = []

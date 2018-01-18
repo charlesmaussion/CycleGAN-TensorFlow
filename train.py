@@ -120,17 +120,19 @@ def train():
                 print(fileName)
                 y_rand_ground_truth_val = groundTruthDict[fileName]
 
-                text_loss_val = cycle_gan.text_cycle_consistency_loss(x_rand_val, fake_fake_x_rand_val)
-                hand_loss_val = cycle_gan.hand_consistency_loss(fake_x_rand_val, y_rand_ground_truth_val)
+                generated_image_data = cycle_gan.create_image(y_rand_ground_truth_val)
+                generated_image_val = [generated_image_data[c:c+cycle_gan.image_height] for c in range(0, len(generated_image_data), cycle_gan.image_height)]
 
+                for j in range(FLAGS.image_length):
+                    for i in range(FLAGS.image_height):
+                        generated_image_data[i].append(generated_image_data)
                 # train
                 _, G_loss_val, D_Y_loss_val, F_loss_val, D_X_loss_val, summary = (
                     sess.run(
                         [optimizers, G_loss, D_Y_loss, F_loss, D_X_loss, summary_op],
                         feed_dict={cycle_gan.fake_y: fake_Y_pool.query(fake_y_val),
                                    cycle_gan.fake_x: fake_X_pool.query(fake_x_val),
-                                   cycle_gan.text_loss: text_loss_val,
-                                   cycle_gan.hand_loss: hand_loss_val}
+                                   cycle_gan.generated_image: generated_image_val}
                     )
                 )
 
@@ -143,8 +145,6 @@ def train():
                     logging.info('    D_Y_loss : {}'.format(D_Y_loss_val))
                     logging.info('    F_loss     : {}'.format(F_loss_val))
                     logging.info('    D_X_loss : {}'.format(D_X_loss_val))
-                    logging.info('    text_loss : {}'.format(text_loss_val))
-                    logging.info('    hand_loss : {}'.format(hand_loss_val))
 
                 if step % 500 == 0:
                     save_path = saver.save(sess, checkpoints_dir + "/model.ckpt", global_step=step)

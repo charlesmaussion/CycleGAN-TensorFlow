@@ -41,6 +41,14 @@ if __name__ == '__main__':
         # parsedArray = parseArray(imageArray)
         data = imagep.getdata()
         imagep.putdata(data)
+        data1 = [data[i] for i in range(448*24)]
+        subList = [data1[c:c+24] for c in range(0, len(data1), 24)]
+        print(subList)
+        data2 = []
+        for i in range(448):
+            for j in range(24):
+                data2.append(imagep.getpixel((i,j)))
+        print(data1 == data2)
 
         imagep.save('./output.jpg')
 

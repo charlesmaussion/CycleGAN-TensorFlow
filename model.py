@@ -8,6 +8,9 @@ from discriminator import Discriminator
 from generator import Generator
 
 from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+
 import pyocr
 import pyocr.builders
 
@@ -25,7 +28,6 @@ class CycleGAN:
          lambda1=10.0,
          lambda2=10.0,
          lambdaText=50.0,
-         lambdaHand=50.0,
          learning_rate=2e-4,
          beta1=0.5,
          ngf=64
@@ -48,7 +50,6 @@ class CycleGAN:
         self.lambda1 = lambda1
         self.lambda2 = lambda2
         self.lambdaText = lambdaText
-        self.lambdaHand = lambdaHand
         self.use_lsgan = use_lsgan
         use_sigmoid = not use_lsgan
         self.batch_size = batch_size
@@ -73,8 +74,8 @@ class CycleGAN:
         self.fake_y = tf.placeholder(tf.float32,
             shape=[batch_size, image_length, image_height, 3])
         self.random_index = tf.placeholder(tf.int32)
-        self.text_loss = tf.placeholder(tf.float32)
-        self.hand_loss = tf.placeholder(tf.float32)
+        self.generated_image = tf.placeholder(tf.float32,
+            shape=[image_height, image_length, 3])
 
         self.acc = 0
         tools = pyocr.get_available_tools()
@@ -83,8 +84,7 @@ class CycleGAN:
             sys.exit(1)
 
         self.tool = tools[0]
-        langs = self.tool.get_available_languages()
-        self.lang = langs[0]
+        self.lang = 'eng'
 
     def model(self):
         X_reader = Reader(self.X_train_file, name='X',
@@ -98,17 +98,18 @@ class CycleGAN:
         y, y_rand_file_names = Y_reader.feed()
 
         cycle_loss = self.cycle_consistency_loss(self.G, self.F, x, y)
+        f_text_loss = self.F_textual_loss(self.F, y, tf.image.transpose_image(self.generated_image))
 
         # X -> Y
         fake_y = self.G(x)
         G_gan_loss = self.generator_loss(self.D_Y, fake_y, use_lsgan=self.use_lsgan)
-        G_loss = G_gan_loss + cycle_loss + 2 * self.text_loss
+        G_loss = G_gan_loss + cycle_loss
         D_Y_loss = self.discriminator_loss(self.D_Y, y, self.fake_y, use_lsgan=self.use_lsgan)
 
         # Y -> X
         fake_x = self.F(y)
         F_gan_loss = self.generator_loss(self.D_X, fake_x, use_lsgan=self.use_lsgan)
-        F_loss = F_gan_loss + cycle_loss + self.text_loss + self.hand_loss
+        F_loss = F_gan_loss + cycle_loss + f_text_loss
         D_X_loss = self.discriminator_loss(self.D_X, x, self.fake_x, use_lsgan=self.use_lsgan)
 
         x_rand = tf.squeeze(tf.slice(x, [self.random_index,0,0,0], [1,-1,-1,-1]), [0])
@@ -212,72 +213,19 @@ class CycleGAN:
         loss = self.lambda1*forward_loss + self.lambda2*backward_loss
         return loss
 
-    def levenshtein(self, s, t):
-        ''' From Wikipedia article; Iterative with two matrix rows. '''
-        if s == t: return 0
-        elif len(s) == 0: return len(t) / max(1, len(s))
-        elif len(t) == 0: return len(s) / max(1, len(s))
-        v0 = [None] * (len(t) + 1)
-        v1 = [None] * (len(t) + 1)
-        for i in range(len(v0)):
-            v0[i] = i
-        for i in range(len(s)):
-            v1[0] = i + 1
-            for j in range(len(t)):
-                cost = 0 if s[i] == t[j] else 1
-                v1[j + 1] = min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost)
-            for j in range(len(v0)):
-                v0[j] = v1[j]
-
-        return v1[len(t)] / max(1, len(s))
-
-    def text_cycle_consistency_loss(self, x_val, cycle_x_val):
-        """ cycle consistency loss (L1 norm)
+    def F_textual_loss(self, F, y, generatedImage):
+        """ f text consistency loss (L1 norm)
         """
-
-        inputText = self.image_to_text(x_val)
-        print('inputText: {}'.format(inputText))
-
-        cycleText = self.image_to_text(cycle_x_val)
-        print('cycleText: {}'.format(cycleText))
-
-        loss = self.lambdaText * self.levenshtein(inputText, cycleText)
+        forward_loss = tf.reduce_mean(tf.abs(
+            tf.squeeze(tf.slice(F(y), [self.random_index,0,0,0], [1,-1,-1,-1]), [0]) - generatedImage
+        ))
+        loss = self.lambdaText*forward_loss
         return loss
 
-    def parseData(self, data):
-        output = []
-        for j in range(self.image_height):
-            for i in range(self.image_length):
-                output.append(tuple(map(lambda x: int(128 * x + 128), data[i][j])))
+    def create_image(self, text):
+        finalImage = Image.open('./scripts/background.jpg')
+        font = ImageFont.truetype('./scripts/Times_New_Roman_Normal.ttf', 20)
+        draw = ImageDraw.Draw(finalImage)
+        draw.text((0, 0), text, (0, 0, 0), font=font)
 
-        return output
-
-    def image_to_text(self, data):
-        parsedData = self.parseData(data)
-
-        image = Image.new('RGB', (self.image_length, self.image_height), 'white')
-        image.putdata(parsedData)
-
-        if self.acc % 50 == 0:
-            image.save('./test_images/test{}.jpg'.format(str(self.acc)))
-        self.acc += 1
-
-        txt = self.tool.image_to_string(
-            image,
-            lang=self.lang,
-            builder=pyocr.builders.TextBuilder()
-        )
-
-        return txt
-
-    def hand_consistency_loss(self, fake_x_val, ground_truth_val):
-        """ cycle consistency loss (L1 norm)
-        """
-
-        print('groundTruth: {}'.format(ground_truth_val))
-
-        inputText = self.image_to_text(fake_x_val)
-        print('handText: {}'.format(inputText))
-
-        loss = self.lambdaHand * self.levenshtein(ground_truth_val, inputText)
-        return loss
+        return finalImage.getdata()

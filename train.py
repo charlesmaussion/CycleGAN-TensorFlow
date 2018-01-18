@@ -59,30 +59,25 @@ def train():
 
             groundTruthDict[fileNumber] = groundTruth.replace('\n', '')
 
-        # ground_truth_sentences = tf.constant(list(map(
-        #     lambda x: x[1].replace('\n', ''),
-        #     sorted(groundTruthDict.items(), key=lambda x: int(x[0]))
-        # )), tf.string)
-
         f.close()
 
     graph = tf.Graph()
     with graph.as_default():
         cycle_gan = CycleGAN(
-                X_train_file=FLAGS.X,
-                Y_train_file=FLAGS.Y,
-                batch_size=FLAGS.batch_size,
-                image_length=FLAGS.image_length,
-                image_height=FLAGS.image_height,
-                use_lsgan=FLAGS.use_lsgan,
-                norm=FLAGS.norm,
-                lambda1=FLAGS.lambda1,
-                lambda2=FLAGS.lambda2,
-                learning_rate=FLAGS.learning_rate,
-                beta1=FLAGS.beta1,
-                ngf=FLAGS.ngf
+            X_train_file=FLAGS.X,
+            Y_train_file=FLAGS.Y,
+            batch_size=FLAGS.batch_size,
+            image_length=FLAGS.image_length,
+            image_height=FLAGS.image_height,
+            use_lsgan=FLAGS.use_lsgan,
+            norm=FLAGS.norm,
+            lambda1=FLAGS.lambda1,
+            lambda2=FLAGS.lambda2,
+            learning_rate=FLAGS.learning_rate,
+            beta1=FLAGS.beta1,
+            ngf=FLAGS.ngf
         )
-        G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_file_name = cycle_gan.model()
+        G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_file_name, f_text_loss = cycle_gan.model()
         optimizers = cycle_gan.optimize(G_loss, D_Y_loss, F_loss, D_X_loss)
 
         summary_op = tf.summary.merge_all()
@@ -121,13 +116,12 @@ def train():
                 y_rand_ground_truth_val = groundTruthDict[fileName]
 
                 generated_image_data = cycle_gan.create_image(y_rand_ground_truth_val)
-                print(len(generated_image_data))
                 generated_image_val = [generated_image_data[c:c+cycle_gan.image_height] for c in range(0, len(generated_image_data), cycle_gan.image_height)]
 
                 # train
-                _, G_loss_val, D_Y_loss_val, F_loss_val, D_X_loss_val, summary = (
+                _, G_loss_val, D_Y_loss_val, F_loss_val, D_X_loss_val, f_text_loss_val, summary = (
                     sess.run(
-                        [optimizers, G_loss, D_Y_loss, F_loss, D_X_loss, summary_op],
+                        [optimizers, G_loss, D_Y_loss, F_loss, D_X_loss, f_text_loss, summary_op],
                         feed_dict={cycle_gan.fake_y: fake_Y_pool.query(fake_y_val),
                                    cycle_gan.fake_x: fake_X_pool.query(fake_x_val),
                                    cycle_gan.generated_image: generated_image_val,
@@ -144,6 +138,7 @@ def train():
                     logging.info('    D_Y_loss : {}'.format(D_Y_loss_val))
                     logging.info('    F_loss     : {}'.format(F_loss_val))
                     logging.info('    D_X_loss : {}'.format(D_X_loss_val))
+                    logging.info('    f_text_loss : {}'.format(f_text_loss_val))
 
                 if step % 500 == 0:
                     save_path = saver.save(sess, checkpoints_dir + "/model.ckpt", global_step=step)

@@ -27,7 +27,7 @@ class CycleGAN:
          norm='instance',
          lambda1=10.0,
          lambda2=10.0,
-         lambdaText=50.0,
+         lambdaText=10.0,
          learning_rate=2e-4,
          beta1=0.5,
          ngf=64
@@ -64,10 +64,10 @@ class CycleGAN:
 
         self.G = Generator('G', self.is_training, ngf=ngf, norm=norm, image_length = image_length, image_height = image_height)
         self.D_Y = Discriminator('D_Y',
-                self.is_training, norm=norm, use_sigmoid=use_sigmoid)
+            self.is_training, norm=norm, use_sigmoid=use_sigmoid)
         self.F = Generator('F', self.is_training, norm=norm, image_length = image_length, image_height = image_height)
         self.D_X = Discriminator('D_X',
-                self.is_training, norm=norm, use_sigmoid=use_sigmoid)
+            self.is_training, norm=norm, use_sigmoid=use_sigmoid)
 
         self.fake_x = tf.placeholder(tf.float32,
             shape=[batch_size, image_length, image_height, 3])
@@ -135,7 +135,7 @@ class CycleGAN:
         tf.summary.image('Y/generated', utils.batch_convert2int(self.F(y)))
         tf.summary.image('Y/reconstruction', utils.batch_convert2int(self.G(self.F(y))))
 
-        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_file_name
+        return G_loss, D_Y_loss, F_loss, D_X_loss, fake_y, fake_x, x_rand, fake_fake_x_rand, fake_x_rand, y_rand_file_name, f_text_loss
 
     def optimize(self, G_loss, D_Y_loss, F_loss, D_X_loss):
         def make_optimizer(loss, variables, name='Adam'):
@@ -216,10 +216,10 @@ class CycleGAN:
     def F_textual_loss(self, F, y, generatedImage):
         """ f text consistency loss (L1 norm)
         """
-        forward_loss = tf.reduce_mean(tf.abs(
+        mean_difference = tf.reduce_mean(tf.abs(
             tf.squeeze(tf.slice(F(y), [self.random_index,0,0,0], [1,-1,-1,-1]), [0]) - generatedImage
         ))
-        loss = self.lambdaText*forward_loss
+        loss = self.lambdaText * mean_difference
         return loss
 
     def create_image(self, text):
@@ -228,4 +228,7 @@ class CycleGAN:
         draw = ImageDraw.Draw(finalImage)
         draw.text((0, 0), text, (0, 0, 0), font=font)
 
-        return list(finalImage.getdata())
+        data = list(finalImage.getdata())
+        data = list(map(lambda x: [(y - 128) / 128 for y in x], data))
+
+        return list(data)
